@@ -7,7 +7,7 @@ Looking for malware hidden in open source projects, we encounter an interesting 
 
 Further, instead of releasing a binary, it wants the end user to compile the program themselves. This is a bit clever, as you would assume a cheat created for educational purposes wouldn't ship a binary for ethical purposes, instead having a tiny barrier of entry for other developers that wanted to use or study the tool.
 
-![Github repo](/assets/images/MalAl-IBC/github-repo.png)
+![Github repo]({{ site.baseurl }}/assets/images/MalAl-IBC/github-repo.png)
 
 Looking through the repository, we find something interesting the `.vcxproj` file located at:
 ```
@@ -452,7 +452,7 @@ hR3^&b2%A9!gK*6LqP7t$NpW
 Password: `hR3^&b2%A9!gK*6LqP7t$NpW`
 
 Unlocking the archive and inspecting it, we see files that appear to come from another project. We focus on the large, likely padded, binary that the malware loader was targeting for extract, `SearchFilter.exe`
-![Inspecting Archive](/assets/images/MalAl-IBC/archive.png)
+![Inspecting Archive]({{ site.baseurl }}/assets/images/MalAl-IBC/archive.png)
 
 ```
 └─$ file SearchFilter.exe                           
@@ -522,7 +522,7 @@ We see its [already been uploaded](https://www.virustotal.com/gui/file/59909bf0c
 Switching to some dynamic analysis, we leverage [ANY.RUN](https://app.any.run) to upload and run the binary, observing its command, network, and file-system behavior. 
 
 
-![initial ANYRUN](/assets/images/MalAl-IBC/anyrun-initial.png)
+![initial ANYRUN]({{ site.baseurl }}/assets/images/MalAl-IBC/anyrun-initial.png)
 
 We see this is much more than a simple info-stealer. Upon execution of searchfilter.exe, the malware first preforms basic reconnaissance of the machine:
 ```
@@ -965,7 +965,7 @@ C:\WINDOWS\system32\cmd.exe /d /s /c "start C:\ProgramData\MicrosoftTool\current
 ```
 
 At this point, the malicious `Microsoft.exe` drops `Service.exe` in `C:\Users\Public\Pictures\`
-![Service.exe Drop](/assets/images/MalAl-IBC/service-drop.png)
+![Service.exe Drop]({{ site.baseurl }}/assets/images/MalAl-IBC/service-drop.png)
 Just as we observed in the last two malicious binaries, `Microsoft.exe` launches itself twice, settings its type to a gpu-process.
 ```
 "C:\ProgramData\MicrosoftTool\current\Microsoft.exe" --type=gpu-process --user-data-dir="C:\Users\admin\AppData\Roaming\Teams" --gpu-preferences=UAAAAAAAAADgAAAYAAAAAAAAAAAAAAAAAABgAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAASAAAAAAAAAAYAAAAAgAAABAAAAAAAAAAGAAAAAAAAAAQAAAAAAAAAAAAAAAOAAAAEAAAAAAAAAABAAAADgAAAAgAAAAAAAAACAAAAAAAAAA= --mojo-platform-channel-handle=1692 --field-trial-handle=1796,i,6058612099769198678,15727490221281573474,131072 --disable-features=SpareRendererForSitePerProcess,WinRetrieveSuggestionsOnlyOnDemand /prefetch:2
@@ -1033,7 +1033,7 @@ Again, another 7z archive is extracted into the users temp directory
 C:\WINDOWS\system32\cmd.exe /d /s /c ""C:\ProgramData\sevenZip\7z.exe" x "C:\Users\admin\AppData\Local\Temp\6q9opc.7z" -p7KoLumBiyaDTX001!! -o"C:\Users\admin\AppData\Local\Temp\6q9opc" -y"
 ```
 This includes files almost identical to the last archive extracted
-![7z Archive Extraction](/assets/images/MalAl-IBC/archive-extract.png)
+![7z Archive Extraction]({{ site.baseurl }}/assets/images/MalAl-IBC/archive-extract.png)
 
 It appears the main purpose of the `Service.exe` runs are to establish persistance by scheduling tasks to run at elevated privileges. `Service.exe` then runs taskkill against itself again. 
 
@@ -1263,14 +1263,14 @@ Finally, `explorer.exe` is injected in via the `taskhostw.exe` process calling `
 `explorer.exe` starts communicating with `164.92.232.138` which appears to be the C2 server. Running a WHOIS on this IP reveals its in the DigitalOceans IP space, indicating the attacker is paying for a VPS to host their C2 on DigitalOcean
 
 ANY.RUN detects a known signature for AsyncRAT, a [FOSS](https://github.com/NYAN-x-CAT/AsyncRAT-C-Sharp) remote access tool developed in C-Sharp.
-![ASyncRat Detection](/assets/images/MalAl-IBC/asyncrat-detect.png)
+![ASyncRat Detection]({{ site.baseurl }}/assets/images/MalAl-IBC/asyncrat-detect.png)
 
 
 We can further confirm this via the response from the C2 server, although we don't have TLS MITM on ANY.RUN, we still see ASYNCRAT in plaintext as this comes from the certificate name.
-![ASyncRat Cert in packet analysis](/assets/images/MalAl-IBC/asyncrat-cert.png)
+![ASyncRat Cert in packet analysis]({{ site.baseurl }}/assets/images/MalAl-IBC/asyncrat-cert.png)
 
 We confirm this via wireshark.
-![ASyncRat Cert wireshark](/assets/images/MalAl-IBC/asyncrat-cert-wireshark.png)
+![ASyncRat Cert wireshark]({{ site.baseurl }}/assets/images/MalAl-IBC/asyncrat-cert-wireshark.png)
 
 
 We can further confirm this with a nmap scan
