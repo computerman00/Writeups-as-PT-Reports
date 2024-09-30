@@ -1,0 +1,17 @@
+---
+layout: base
+title: FindingsDB
+---
+<h1>FindingsDB</h1>
+
+<h4>The FindingsDB includes all findings found throughout all assessments, sorted by CVSS(Common Vulnerability Scoring System). Finding evidence specific to the engagement in which they were discovered is included upon clicking on a specific finding.</h4>
+
+<ul>
+  {% assign sorted_findings = site.findings | sort: 'CVSS' | reverse %}
+  {% for finding in sorted_findings %}
+    <li>
+      <h2><a href="{{ finding.url }}">{{ finding.title }}</a></h2>
+      {{ finding.excerpt }}
+    </li>
+  {% endfor %}
+</ul>

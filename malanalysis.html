@@ -1,0 +1,17 @@
+---
+layout: base
+title: MalwareAnalysis
+---
+<h1>Malware Analysis</h1>
+
+<h4>This is a temporary home for malware reverse engineering and analysis write-ups. While malware analysis has always been a hobby, typically only short notes relating to de-obfuscation, hidden secrets, and malicious endpoints are recorded. The goal for this page is to convert those notes(Both new and old) into full writeups, detailing each stage of the malware meticiously up until its final payload.</h4>
+
+<ul>
+  {% for malwriteup in site.malanalysis %}
+    <li>
+      <h2><a href="{{ malwriteup.url }}">{{ malwriteup.title }}</a></h2>
+      <h3>{{ malwriteup.position }}</h3>
+      <p>{{ malwriteup.excerpt }}</p>
+    </li>
+  {% endfor %}
+</ul>

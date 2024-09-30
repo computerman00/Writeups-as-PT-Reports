@@ -1,0 +1,28 @@
+/**
+ * Images
+ */
+img {
+  display: block;       // Makes the image a block-level element
+  max-width: 100%;      // Ensures images are not wider than their container
+  height: auto;         // Keeps the image's aspect ratio intact
+  margin: 0 auto;       // Centers the image horizontally
+  clear: both;
+}
+
+/* Custom Shell Command Highlighting */
+.language-console .highlight .gp { color: green; }       // Prompt
+.language-console .highlight .nb { color: blue; }        // Command
+.language-console .highlight .nt { color: purple; }      // Parameters/Flags
+.language-console .highlight .nv { color: darkgreen; }   // Variables (possibly misused in some contexts)
+.language-console .highlight .o  { color: orange; }      // Operators, such as = or ()
+
+
+/**
+@media screen and (min-width: $on-large) {
+  .wrapper {
+    max-width: 90%; // or any other value that fits your design
+    padding-right: $spacing-unit;
+    padding-left: $spacing-unit;
+  }
+}
+ */
