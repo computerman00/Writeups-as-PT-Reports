@@ -18,9 +18,13 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-baseurl: "/Writeups-as-PT-Reports/"
+
 ignore_theme_config: true
 title: Writeups as PT Reports
+url: "https://computerman00.github.io"
+baseurl: "/Writeups-as-PT-Reports/"
+remote_theme: jekyll/minima
+
 author:
   name: Omar - computerman00
   email: contact@susarchive.zip
@@ -39,7 +43,7 @@ highlighter: rouge
 
 # Build settings
 #theme: minima
-remote_theme: jekyll/minima
+
 
 minima:
   social_links:
