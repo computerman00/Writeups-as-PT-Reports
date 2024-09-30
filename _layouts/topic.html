@@ -10,6 +10,6 @@ layout: base
 <ul>
   {% assign filtered_posts = site.posts | concat: site.malanalysis | where: 'topic', page.short_name %}
   {% for post in filtered_posts %}
-    <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+    <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>
   {% endfor %}
 </ul>

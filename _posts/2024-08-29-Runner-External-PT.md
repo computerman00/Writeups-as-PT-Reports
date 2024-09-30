@@ -151,10 +151,7 @@ Port 80 redirects to `http://runner.htb/`, the tester added this to the `/etc/ho
 
 The tester navigated to `http://runner.htb` and noted a web service advertising for "Runner", a company specializing in CI/CD solutions.
 
-![Runner Web Application](/assets/images/Runner_Web_App.png)
-
-Enumerating web app technologies used with Wappanalyzer
-![Runner Web Application Tech](/assets/images/Runner_Web_App_Tech.png)
+![Runner Web Application](assets/images/Runner/Runner_Web_App.png)
 
 
 The tester then proceeded to 'fuzz' directories and subdomain using the [ffuf](https://github.com/ffuf/ffuf) tool, this is a method of guessing(or 'brute-forcing') directories and subdomains from a wordlist until a valid status code is returned. 
@@ -188,7 +185,7 @@ teamcity                [Status: 401, Size: 66, Words: 8, Lines: 2, Duration: 58
 ```
 
 The `teamcity` subdomain/vHost was found. The tester adds this to their `/etc/hosts` file and connects to the service via a web-browser to be greeted by a `TeamCity` login page.
-![TeamCity Logon Page](/assets/images/TeamCity_Login.png)
+![TeamCity Logon Page](assets/images/Runner/TeamCity_Login.png)
 
 The service allowed for quick fingerprinting, giving the version and build number on the login page to un-authenticated users. The tester searched for known public exploits for `TeamCity 2023.05.3` and discovered a [exploit](https://www.exploit-db.com/exploits/51884) allowing for creation of an Administrator account without authentication. 
 
@@ -207,15 +204,15 @@ After retrieving the token, the tester sends another request to the `/app/rest/u
 ```
 
 The newly created account was used to log into the TeamCity web application as an Administrator
-![TeamCity Admin Login](/assets/images/TeamCity_Auth.png)
+![TeamCity Admin Login](assets/images/Runner/TeamCity_Auth.png)
 
 The tester enumerated the intended functionalities of the service, before the `http://teamcity.runner.htb/admin/admin.html?item=backup` endpoint was found. This allows for backups of the TeamCity database, server settings, build logs, personal changes, and more to be backup via the web portal and downloaded.
 
 The backup ZIP archive was downloaded to the testers machine
-![TeamCity Backup Download](/assets/images/TeamCity_Backup_Download.png)
+![TeamCity Backup Download](assets/images/Runner/TeamCity_Backup_Download.png)
 
 Within `/config/projects/AllProjects/pluginData/ssh_keys/` in the archive, a `id_rsa` SSH private key is discovered. This is extracted to the testers machine.
-![TeamCity Backup SSH-Key](/assets/images/TeamCity-Backup-SSH.png)
+![TeamCity Backup SSH-Key](assets/images/Runner/TeamCity-Backup-SSH.png)
 
 Further enumerating the backup archive, a `users` file was found in `/database_dump`. This file contained the username, email, and password hash for all registered users. Two names stick out, `John`, the admin, and `Matthew`, another user. 
 
@@ -317,31 +314,31 @@ server {
 ```
 
 The tester carefully inspected the linpeas.sh output and noted the presence of other services running on localhost, including the `portainer-administration.runner.htb` vHost. This was added to the testers `/etc/hosts` file and navigated to via a web-browser. 
-![Portainer.io Login Page](/assets/images/portainerio-login.png)
+![Portainer.io Login Page](assets/images/Runner/portainerio-login.png)
 
 This revealed the portainer.io service. The tester used the previously cracked credentials for the `matthew` account to successfully log in.
-![Portainer.io Auth'd](/assets/images/Portainer_Authd.png)
+![Portainer.io Auth'd](assets/images/Runner/Portainer_Authd.png)
 
 
 Searching for public exploits or vulnerabilities, the tester found the [following article](https://labs.withsecure.com/publications/abusing-the-access-to-mount-namespaces-through-procpidroot) detailing how to exploit portainer.io and escalate privileges via bind mounts. The [portainer.io documentation](https://docs.portainer.io/user/docker/volumes/add) was then used to learn how to create a volume with the necessary flags.
-![Creating Portainer Docker Volume](/assets/images/Portainer_Create_Volume.png)
+![Creating Portainer Docker Volume](assets/images/Runner/Portainer_Create_Volume.png)
 
 
 
 The tester proceeded to create a new Docker container through the portainer.io web-portal. The Image used was `ubuntu:latest` with the image id retrieved from the Images tab in the portainer.io UI.
-![Creating Portainer Docker Container](/assets/images/Create_Container.png)
+![Creating Portainer Docker Container](assets/images/Runner/Create_Container.png)
 
 The tester set the volume to the one previously created, this volume created a bind mount from `/` on the host to `/mnt` in the container.
-![Attatching Volume to Container](/assets/images/Set_Container_Volume.png)
+![Attatching Volume to Container](assets/images/Runner/Set_Container_Volume.png)
 
 
 
 The tester deployed the container and selected the `>_ Console` option to connect to the container through the web application, starting the `/bin/bash` shell. 
-![Started Docker Container](/assets/images/Started_Container.png)
+![Started Docker Container](assets/images/Runner/Started_Container.png)
 
 
 The tester then confirmed access to the host file system via the previously created bind mount and grabbed the `root` users SSH private key located at `/mnt/root/.ssh`.
-![Confirming Host Access](/assets/images/Host_Access.png)
+![Confirming Host Access](assets/images/Runner/Host_Access.png)
 
 
 Password hashes are grabbed from `/etc/shadow`, these are encrypted with `yescrypt` however which is very computationally expensive with little-to-no GPU acceleration support.
@@ -418,24 +415,24 @@ With the tests and data gathered from this assessment, there exists multiple opp
 | External References               | https://attack.mitre.org/techniques/T1552/004/                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 Searching for public exploits or vulnerabilities, the tester found the [following article](https://labs.withsecure.com/publications/abusing-the-access-to-mount-namespaces-through-procpidroot) detailing how to exploit portainer.io and escalate privileges via bind mounts. The [portainer.io documentation](https://docs.portainer.io/user/docker/volumes/add) was then used to learn how to create a volume with the necessary flags.
-![Creating Portainer Docker Volume](/assets/images/Portainer_Create_Volume.png)
+![Creating Portainer Docker Volume](assets/images/Runner/Portainer_Create_Volume.png)
 
 
 
 The tester proceeded to create a new Docker container through the portainer.io web-portal. The Image used was `ubuntu:latest` with the image id retrieved from the Images tab in the portainer.io UI.
-![Creating Portainer Docker Container](/assets/images/Create_Container.png)
+![Creating Portainer Docker Container](assets/images/Runner/Create_Container.png)
 
 The tester set the volume to the one previously created, this volume created a bind mount from `/` on the host to `/mnt` in the container.
-![Attatching Volume to Container](/assets/images/Set_Container_Volume.png)
+![Attatching Volume to Container](assets/images/Runner/Set_Container_Volume.png)
 
 
 
 The tester deployed the container and selected the `>_ Console` option to connect to the container through the web application, starting the `/bin/bash` shell. 
-![Started Docker Container](/assets/images/Started_Container.png)
+![Started Docker Container](assets/images/Runner/Started_Container.png)
 
 
 The tester then confirmed access to the host file system via the previously created bind mount and grabbed the `root` users SSH private key located at `/mnt/root/.ssh`.
-![Confirming Host Access](/assets/images/Host_Access.png)
+![Confirming Host Access](assets/images/Runner/Host_Access.png)
 
 
 Password hashes are grabbed from `/etc/shadow`, these are encrypted with `yescrypt` however which is very computationally expensive with little-to-no GPU acceleration support.
@@ -497,7 +494,7 @@ After retrieving the token, the tester sends another request to the `/app/rest/u
 ```
 
 The newly created account was used to log into the TeamCity web application as an Administrator
-![TeamCity Admin Login](/assets/images/TeamCity_Auth.png)
+![TeamCity Admin Login](assets/images/Runner/TeamCity_Auth.png)
 
 
 
@@ -514,10 +511,10 @@ The newly created account was used to log into the TeamCity web application as a
 
 Chained with CVE(using a public [exploit](https://www.exploit-db.com/exploits/51884)) to gain un-authorized access to the TeamCity administrator dashboard, a backup of the TeamCity database, server settings, build logs, and personal build changes can be requested and downloaded directly from the web dashboard using the `http://teamcity.runner.htb/admin/admin.html?item=backup` endpoint.
 
-![TeamCity Backup Download](/assets/images/TeamCity_Backup_Download.png)
+![TeamCity Backup Download](assets/images/Runner/TeamCity_Backup_Download.png)
 
 Within `/config/projects/AllProjects/pluginData/ssh_keys/` in the archive, a `id_rsa` SSH private key is discovered.
-![TeamCity Backup SSH-Key](/assets/images/TeamCity-Backup-SSH.png)
+![TeamCity Backup SSH-Key](assets/images/Runner/TeamCity-Backup-SSH.png)
 
 A `users` file can also be located within the .zip archive under `/database_dump` revealing the TeamCity users and their sign-up information. With this knowledge, the owner of the SSH private key can trivially be discovered with trial-and-error. This led to the discovery that the SSH private key is associated with the `john` user, allowing full SSH access to the `runner` host as that user.
 ```console?prompt=$
@@ -543,10 +540,10 @@ uid=1001(john) gid=1001(john) groups=1001(john)
 | External References               | https://attack.mitre.org/mitigations/M1027/                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 After discovering the `portainer-administration.runner.htb` vHost, it was added to the testers `/etc/hosts` file and navigated to via a web-browser. 
-![Portainer.io Login Page](/assets/images/portainerio-login.png)
+![Portainer.io Login Page](assets/images/Runner/portainerio-login.png)
 
 This revealed the portainer.io service. The tester used the previously cracked credentials for the `matthew` account to successfully log in.
-![Portainer.io Auth'd](/assets/images/Portainer_Authd.png)
+![Portainer.io Auth'd](assets/images/Runner/Portainer_Authd.png)
 
 
 ## 5. Weak, Common User Credentials

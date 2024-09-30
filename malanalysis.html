@@ -9,7 +9,7 @@ title: MalwareAnalysis
 <ul>
   {% for malwriteup in site.malanalysis %}
     <li>
-      <h2><a href="{{ malwriteup.url }}">{{ malwriteup.title }}</a></h2>
+      <h2><a href="{{ malwriteup.url | relative_url}}">{{ malwriteup.title }}</a></h2>
       <h3>{{ malwriteup.position }}</h3>
       <p>{{ malwriteup.excerpt }}</p>
     </li>

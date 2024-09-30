@@ -10,7 +10,7 @@ title: FindingsDB
   {% assign sorted_findings = site.findings | sort: 'CVSS' | reverse %}
   {% for finding in sorted_findings %}
     <li>
-      <h2><a href="{{ finding.url }}">{{ finding.title }}</a></h2>
+      <h2><a href="{{ finding.url | relative_url}}">{{ finding.title }}</a></h2>
       {{ finding.excerpt }}
     </li>
   {% endfor %}
